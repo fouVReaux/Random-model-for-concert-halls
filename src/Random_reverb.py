@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 class RandomReverb():
-    def __init__(self, volume, surface, alpha, ir_duration, fs):
+    def __init__(self, volume, surface, TR60, ir_duration, fs):
         self.volume = volume
         self.surface = surface
-        self.alpha = alpha
+        self.TR60 = TR60
         self.fs = fs
         self.ir_duration = ir_duration
         #
@@ -53,6 +53,7 @@ class RandomReverb():
 
     def comput_ir(self):
         # local var
+        alpha = (0.161*self.volume)/(self.TR60*self.surface)
         c = 340
         l = 4 * self.volume / self.surface
         Δt = 1 / self.fs
@@ -83,7 +84,7 @@ class RandomReverb():
                     n_mean = 1+n(t)
                     nb_refls = 1 + np.random.normal(loc=n_mean, scale=0.3)
 
-                mag = (1 - self.alpha)**nb_refls
+                mag = (1 - alpha)**nb_refls
                 ir[i] = mag * (-1) ** i
                 nb_arrivals_written += 1
 
@@ -112,17 +113,17 @@ if __name__ == "__main__":
     # Room value
     volume = 2000       # m^3
     surface = volume/4  # m^2
-    alpha = 0.3         # attenuation coefficient
+    TR60 = 2            # in seconds
     ir_duration = 1     # in seconds
     fs = 44100          # in Hz
     # Room simulation
-    rr = RandomReverb(volume, surface, alpha, ir_duration, fs)
+    rr = RandomReverb(volume, surface, TR60, ir_duration, fs)
     rr.set_direct_sound(1)
     rr.set_dist("gaussian")
     rr.comput_ir()
     rr.save_ir()
-    #rr.plot_ir()
-    rr.plot_save()
-    rr.load_audio("../sample/Melodie_1_rSR.wav")
+    rr.plot_ir()
+    #rr.plot_save()
+    #rr.load_audio("../sample/Melodie_1_rSR.wav")
     #rr.normalized_audio("../sample/Melodie_input_normalized.wav")
-    rr.convol_audio_ir("../sample/Melodie_conv_1_gaussian.wav")
+    #rr.convol_audio_ir("../sample/Melodie_conv_1_gaussian.wav")
